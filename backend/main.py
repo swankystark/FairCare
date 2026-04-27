@@ -29,7 +29,7 @@ app.include_router(voice_router)
 
 engine = BiasEngine()
 # Load your dataset once into memory for the hackathon speed
-DATA_PATH = "C:\\Users\\swank\\OneDrive\\Desktop\\hackathon\\SolutionChallenge\\faircare\\backend\\data\\2023\\1-Year\\psam_p06.csv"
+DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "2023", "1-Year", "psam_p06.csv")
 full_df = pd.read_csv(DATA_PATH, nrows=200000).sample(frac=1, random_state=42)
 
 @app.get("/")
