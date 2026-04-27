@@ -1,0 +1,290 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ───── THEME TOKENS ───── */
+@theme {
+  --color-bg-primary: #080C14;
+  --color-bg-card: #0D1420;
+  --color-bg-elevated: #111827;
+  --color-border: #1E2D45;
+  --color-border-bright: rgba(37, 99, 235, 0.13);
+  --color-accent-blue: #3B82F6;
+  --color-accent-cyan: #06B6D4;
+  --color-accent-green: #10B981;
+  --color-accent-red: #EF4444;
+  --color-accent-amber: #F59E0B;
+  --color-accent-purple: #8B5CF6;
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #475569;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
+
+/* ───── BASE ───── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  background-image: radial-gradient(ellipse at 20% 50%, #0F2744 0%, #080C14 60%);
+  background-attachment: fixed;
+}
+
+#root { min-height: 100vh; }
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* ───── SCROLLBAR ───── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+/* ───── UTILITIES ───── */
+.font-mono { font-family: var(--font-mono); }
+
+.card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  border-color: var(--color-accent-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.08);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+}
+.btn:hover { transform: scale(1.02); }
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+  background: var(--color-accent-blue);
+  color: white;
+}
+.btn-primary:hover { background: #2563EB; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-accent-cyan);
+  border: 1px solid var(--color-accent-cyan);
+}
+.btn-outline:hover { background: rgba(6, 182, 212, 0.1); }
+
+.btn-purple {
+  background: var(--color-accent-purple);
+  color: white;
+}
+.btn-purple:hover { background: #7C3AED; }
+
+.btn-gradient {
+  background: linear-gradient(135deg, var(--color-accent-blue), var(--color-accent-purple));
+  color: white;
+}
+.btn-gradient:hover {
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+}
+
+/* ───── SKELETON LOADER ───── */
+.skeleton {
+  background: linear-gradient(90deg, #1E2D45 25%, #2D3F5C 50%, #1E2D45 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease infinite;
+  border-radius: 8px;
+}
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ───── ANIMATIONS ───── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes expand-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes waveform-bar {
+  0%, 100% { height: 4px; }
+  50% { height: 24px; }
+}
+
+.animate-fade-in { animation: fade-in 0.6s ease forwards; }
+.animate-slide-up { animation: slide-up 0.8s ease forwards; }
+
+/* ───── GRADIENT SEPARATOR ───── */
+.gradient-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent-blue), var(--color-accent-cyan), transparent);
+}
+
+/* ───── FLOATING PARTICLES (CSS-only) ───── */
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--color-accent-blue);
+  border-radius: 50%;
+  opacity: 0.15;
+  animation: float 6s ease-in-out infinite;
+}
+.particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; animation-duration: 7s; }
+.particle:nth-child(2) { left: 25%; top: 60%; animation-delay: 1s; animation-duration: 5s; }
+.particle:nth-child(3) { left: 45%; top: 30%; animation-delay: 2s; animation-duration: 8s; }
+.particle:nth-child(4) { left: 60%; top: 70%; animation-delay: 0.5s; animation-duration: 6s; }
+.particle:nth-child(5) { left: 75%; top: 15%; animation-delay: 1.5s; animation-duration: 9s; }
+.particle:nth-child(6) { left: 85%; top: 50%; animation-delay: 3s; animation-duration: 7s; }
+.particle:nth-child(7) { left: 35%; top: 85%; animation-delay: 2.5s; animation-duration: 5.5s; }
+.particle:nth-child(8) { left: 55%; top: 45%; animation-delay: 0.8s; animation-duration: 6.5s; }
+.particle:nth-child(9) { left: 15%; top: 75%; animation-delay: 1.2s; animation-duration: 8.5s; }
+.particle:nth-child(10) { left: 90%; top: 35%; animation-delay: 2s; animation-duration: 7.5s; }
+
+/* ───── PULSE RING (for mic button) ───── */
+.pulse-ring {
+  position: absolute;
+  border: 2px solid var(--color-accent-red);
+  border-radius: 50%;
+  animation: expand-ring 1.5s ease-out infinite;
+}
+.pulse-ring:nth-child(1) { animation-delay: 0s; }
+.pulse-ring:nth-child(2) { animation-delay: 0.5s; }
+.pulse-ring:nth-child(3) { animation-delay: 1s; }
+
+/* ───── PROGRESS RING ───── */
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.8s ease;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* ───── CASCADE NODE ───── */
+.cascade-node {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.cascade-node:hover {
+  box-shadow: 0 0 24px rgba(239, 68, 68, 0.25);
+  transform: translateY(-3px);
+}
+.cascade-node.active {
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+}
+
+/* ───── TOGGLE PILLS ───── */
+.toggle-pill {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+}
+.toggle-pill:hover {
+  border-color: var(--color-accent-blue);
+  color: var(--color-text-primary);
+}
+.toggle-pill.active {
+  background: var(--color-accent-blue);
+  border-color: var(--color-accent-blue);
+  color: white;
+}
+
+/* ───── COLLAPSIBLE SECTION ───── */
+.collapsible-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ───── WAVEFORM ───── */
+.waveform-bar {
+  width: 3px;
+  background: var(--color-accent-purple);
+  border-radius: 2px;
+  animation: waveform-bar 0.8s ease-in-out infinite;
+}
+
+/* ───── PRINT STYLES ───── */
+@media print {
+  body {
+    background: white !important;
+    color: #1a1a1a !important;
+    background-image: none !important;
+  }
+  .card {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+  }
+  .no-print { display: none !important; }
+  h1, h2, h3, h4, h5, h6 { color: #111827 !important; }
+  .gradient-line { background: #e5e7eb !important; }
+}
