@@ -29,8 +29,8 @@ app.include_router(voice_router)
 
 engine = BiasEngine()
 # Load your dataset once into memory for the hackathon speed
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "2023", "1-Year", "psam_p06.csv")
-full_df = pd.read_csv(DATA_PATH, nrows=200000).sample(frac=1, random_state=42)
+DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "2023", "1-Year", "psam_p06_sample.csv")
+full_df = pd.read_csv(DATA_PATH).sample(frac=1, random_state=42)
 
 @app.get("/")
 def read_root():
@@ -46,6 +46,13 @@ def run_audit(sensitive_col: str = "RAC1P"):
 
 class AuditResults(BaseModel):
     results: dict
+
+if __name__ == "__main__":
+    import uvicorn
+    # Use the PORT environment variable if it exists, otherwise default to 8080
+    port = int(os.environ.get("PORT", 8080))
+    # CRITICAL: host must be 0.0.0.0 to be visible outside the container
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
 
 class RemediateRequest(BaseModel):
     sensitive_col: str = "RAC1P"
