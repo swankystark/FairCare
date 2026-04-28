@@ -91,11 +91,11 @@ async def generate_passport(metrics: dict):
     - Model: High-Intensity Care Management Triage Classifier
     - Dataset: ACS PUMS 2023, California, {metrics.get('n_samples', 200000)} patients
     - Baseline Accuracy: {metrics.get('accuracy_baseline', 99.9)}%
-    - Demographic Parity Gap: {metrics.get('dp_gap_baseline', 12.75)}%
-    - Equalized Odds Gap: {metrics.get('eo_gap_baseline', 100)}%
-    - Most Affected Group: Indigenous/Alaska Native — {metrics.get('group4_rate', 0)}% selection rate
+    - Demographic Parity Gap: {metrics.get('demographic_parity_gap_baseline', 12.75)}%
+    - Equalized Odds Gap: {metrics.get('equalized_odds_gap_baseline', 100)}%
+    - Most Affected Group: Indigenous/Alaska Native — {float(metrics.get('demographic_rates', {}).get('4', 0)) * 100:.1f}% selection rate
     - Primary Bias Drivers: PINCP (Income), DIS (Disability) — identified as racial proxies via SHAP
-    - Post-Remediation Parity Gap: {metrics.get('dp_gap_remediated', 9.09)}%
+    - Post-Remediation Parity Gap: {metrics.get('demographic_parity_gap_remediated', 9.09)}%
     - Estimated Patients Wrongly Excluded: {metrics.get('patients_harmed', 847)}
     
     Generate a Clinical Bias Passport with these EXACT sections.
@@ -132,8 +132,7 @@ async def generate_passport(metrics: dict):
     - Action name
     - Why this action addresses the root cause (not just symptoms)
     - Estimated implementation time
-    - Expected metric improvement (be specific: "Expected to reduce 
-      Demographic Parity Gap from 9.09% to approximately 4-5%")
+    - Expected metric improvement (be specific: "Expected to reduce Demographic Parity Gap from {metrics.get('demographic_parity_gap_remediated', 9.09)}% to approximately 4-5%")
     - Which regulation violation it resolves
     
     SECTION 6 — DEPLOYMENT RECOMMENDATION:
