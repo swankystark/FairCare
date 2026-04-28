@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
-import { Shield, ChevronDown, ChevronUp, Download, XOctagon, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Shield, ChevronDown, ChevronUp, Download, AlertTriangle, FileText, Users, TrendingUp, Activity, CheckCircle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { API_BASE } from '../utils/apiConfig';
@@ -397,10 +397,31 @@ export default function BiasPassport({ auditData, remediatedData }) {
       </div>
 
       {!passport && !isLoading && (
-        <button onClick={generatePassport} className="btn btn-gradient text-base px-8 py-3 w-full justify-center">
-          <Shield size={18} />
-          Generate Clinical Bias Passport
-        </button>
+        <div className="space-y-3">
+          {!remediatedData ? (
+            <div className="card p-4 bg-amber-50 border border-amber-200">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle size={16} className="text-amber-600" />
+                <span className="text-sm font-semibold text-amber-800">Remediation Required</span>
+              </div>
+              <p className="text-xs text-amber-700 mb-3">
+                Please complete the remediation process first to generate a comprehensive clinical report with both baseline and post-remediation metrics.
+              </p>
+              <div className="text-xs text-amber-600 bg-amber-100 rounded p-2">
+                <strong>Required Steps:</strong><br/>
+                1. Go to <strong>Remediation</strong> tab<br/>
+                2. Select <strong>Demographic Parity</strong><br/>
+                3. Click to apply remediation<br/>
+                4. Return here to generate report
+              </div>
+            </div>
+          ) : (
+            <button onClick={generatePassport} className="btn btn-gradient text-base px-8 py-3 w-full justify-center">
+              <Shield size={18} />
+              Generate Clinical Bias Passport
+            </button>
+          )}
+        </div>
       )}
 
       {/* Loading state */}
