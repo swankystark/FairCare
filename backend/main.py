@@ -83,6 +83,9 @@ def explain_bias(data: AuditResults):
 
 @app.post("/api/generate-passport")
 async def generate_passport(metrics: dict):
+    print(f"[PASSPORT] Received metrics: {metrics}")
+    print(f"[PASSPORT] Metrics keys: {list(metrics.keys()) if metrics else 'None'}")
+    
     # Calculate proper severity classification
     baseline_acc = metrics.get('accuracy_baseline', 99.9)
     baseline_dp = metrics.get('demographic_parity_gap_baseline', 25.0)

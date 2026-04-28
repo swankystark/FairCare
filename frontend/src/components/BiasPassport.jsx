@@ -167,13 +167,13 @@ function generatePDF({ passport, auditMetrics, remediatedMetrics, generatedAt })
       startY: y,
       head: [['Regulation', 'Status', 'Findings']],
       body: [
-        ...passport.regulatory_compliance.map(item => [
+        ...(Array.isArray(passport.regulatory_compliance) ? passport.regulatory_compliance.map(item => [
           item.regulation || item.article || item.name || '—',
           item.status || (item.passes ? 'PASS' : 'FAIL'),
           ((item.reason || item.analysis || item.why || '') +
            ' [SHAP: PINCP (income) has 0.73 correlation with RAC1P (race), acting as illegal proxy. DIS (disability) has 0.45 correlation. Combined effect: 847 Indigenous/Alaska Native patients excluded. Group 4 selection rate = 0.00%.]')
           .substring(0, 300),
-        ]),
+        ]) : [])
       ],
       theme: 'grid',
       styles: { fontSize: 7.5, cellPadding: 2.5, textColor: [30, 41, 59] },
@@ -204,7 +204,7 @@ function generatePDF({ passport, auditMetrics, remediatedMetrics, generatedAt })
     autoTable(doc, {
       startY: y,
       head: [['#', 'Action', 'Timeline', 'Expected Improvement']],
-      body: passport.action_plan.map((a, i) => [
+      body: (Array.isArray(passport.action_plan) ? passport.action_plan : []).map((a, i) => [
         i + 1,
         a.action_name || a.name || a.action || '—',
         a.estimated_implementation_time || a.timeline || '—',
@@ -295,18 +295,25 @@ export default function BiasPassport({ auditData, remediatedData }) {
   const [generatedAt, setGeneratedAt] = useState(null);
 
   // Build synced metric objects for the PDF
-  const auditMetrics = auditData ? {
+  const auditMetrics = auditData && auditData.accuracy_baseline !== undefined ? {
     accuracy_pct: auditData.accuracy_baseline,
-    demographic_parity_pct: auditData.demographic_parity_gap_baseline,
-    equalized_odds_pct: auditData.equalized_odds_gap_baseline,
+    demographic_parity_pct: auditData.demographic_parity_gap_baseline || 0,
+    equalized_odds_pct: auditData.equalized_odds_gap_baseline || 0,
   } : null;
 
-  const remediatedMetrics = remediatedData ? {
-    demographic_parity_pct: remediatedData.demographic_parity_gap_remediated,
-    equalized_odds_pct: remediatedData.equalized_odds_gap_remediated,
+  const remediatedMetrics = remediatedData && remediatedData.demographic_parity_gap_remediated !== undefined ? {
+    demographic_parity_pct: remediatedData.demographic_parity_gap_remediated || 0,
+    equalized_odds_pct: remediatedData.equalized_odds_gap_remediated || 0,
   } : null;
 
   const generatePassport = useCallback(async () => {
+    // Check if we have required data
+    if (!auditData || auditData.accuracy_baseline === undefined) {
+      console.error('Cannot generate passport: Missing audit data');
+      alert('Please run an audit first before generating the clinical report.');
+      return;
+    }
+
     setIsLoading(true);
     setLoadingStep(0);
 
@@ -315,20 +322,20 @@ export default function BiasPassport({ auditData, remediatedData }) {
     }, 2000);
 
     try {
-      // Use actual data from audit and remediation
+      // Use actual data from audit and remediation with safe defaults
       const payload = {
-        accuracy_baseline: auditData?.accuracy_baseline || 0,
-        demographic_parity_gap_baseline: auditData?.demographic_parity_gap_baseline || 0,
-        equalized_odds_gap_baseline: auditData?.equalized_odds_gap_baseline || 0,
-        fairness_score_baseline: auditData?.fairness_score_baseline || 0,
-        demographic_rates: auditData?.demographic_rates || {},
-        feature_importance: auditData?.feature_importance || {},
-        patients_harmed: auditData?.patients_harmed || 0,
-        n_samples: auditData?.n_samples || 50000,
+        accuracy_baseline: auditData.accuracy_baseline || 0,
+        demographic_parity_gap_baseline: auditData.demographic_parity_gap_baseline || 0,
+        equalized_odds_gap_baseline: auditData.equalized_odds_gap_baseline || 0,
+        fairness_score_baseline: auditData.fairness_score_baseline || 0,
+        demographic_rates: auditData.demographic_rates || {},
+        feature_importance: auditData.feature_importance || {},
+        patients_harmed: auditData.patients_harmed || 0,
+        n_samples: auditData.n_samples || 50000,
       };
 
       // Add remediation data if available
-      if (remediatedData) {
+      if (remediatedData && remediatedData.accuracy_remediated !== undefined) {
         payload.accuracy_remediated = remediatedData.accuracy_remediated;
         payload.demographic_parity_gap_remediated = remediatedData.demographic_parity_gap_remediated;
         payload.equalized_odds_gap_remediated = remediatedData.equalized_odds_gap_remediated;
@@ -336,14 +343,19 @@ export default function BiasPassport({ auditData, remediatedData }) {
         payload.demographic_rates_remediated = remediatedData.demographic_rates;
       }
 
+      console.log('Sending payload:', payload);
       const res = await axios.post(`${API_BASE}/api/generate-passport`, payload);
+      console.log('Received response:', res.data);
+      
       setPassport(res.data);
       setGeneratedAt(new Date().toISOString());
     } catch (err) {
-      console.error('Passport generation failed', err);
+      console.error('Passport generation failed:', err);
+      alert('Failed to generate clinical report. Please check the console for details.');
+    } finally {
+      clearInterval(stepInterval);
+      setIsLoading(false);
     }
-    clearInterval(stepInterval);
-    setIsLoading(false);
   }, [auditData, remediatedData]);
 
   const handleDownloadPDF = useCallback(() => {
@@ -425,15 +437,18 @@ export default function BiasPassport({ auditData, remediatedData }) {
 
           <CollapsibleSection title="Regulatory Compliance Analysis">
             <div className="space-y-3">
-              {(passport.regulatory_compliance || []).map((item, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-bg-elevated rounded-lg">
-                  <PassFailBadge passed={item.status === 'PASS' || item.passes === true} />
-                  <div>
-                    <p className="text-sm text-text-primary font-medium">{item.regulation || item.article || item.name}</p>
-                    <p className="text-xs text-text-secondary mt-1">{item.reason || item.analysis || item.why}</p>
+              {typeof passport.regulatory_compliance === 'object' && passport.regulatory_compliance !== null ? 
+                Object.entries(passport.regulatory_compliance).map(([regulation, finding], idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-bg-elevated rounded-lg">
+                    <PassFailBadge passed={finding.includes('PASS') || finding.includes('APPROVED')} />
+                    <div>
+                      <p className="text-sm text-text-primary font-medium">{regulation.replace(/_/g, ' ')}</p>
+                      <p className="text-xs text-text-secondary mt-1">{finding}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )) : (
+                <div className="text-sm text-text-secondary">Regulatory compliance data not available</div>
+              )}
             </div>
           </CollapsibleSection>
 
@@ -462,25 +477,20 @@ export default function BiasPassport({ auditData, remediatedData }) {
 
           <CollapsibleSection title="Remediation Action Plan">
             <div className="space-y-4">
-              {(passport.action_plan || []).map((action, idx) => (
+              {Array.isArray(passport.action_plan) ? passport.action_plan.map((action, idx) => (
                 <div key={idx} className="p-4 bg-bg-elevated rounded-lg border-l-2 border-accent-blue">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-6 h-6 rounded-full bg-accent-blue flex items-center justify-center text-xs text-white font-bold shrink-0">{idx + 1}</span>
-                    <p className="text-sm text-text-primary font-semibold">{action.action_name || action.name || action.action}</p>
-                    {(action.estimated_implementation_time || action.timeline) && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-bg-card border border-border text-text-muted ml-auto shrink-0">
-                        {action.estimated_implementation_time || action.timeline}
-                      </span>
-                    )}
+                    <h4 className="text-sm font-semibold text-text-primary">Action {idx + 1}</h4>
                   </div>
-                  <p className="text-xs text-text-secondary">{action.why || action.reason || action.root_cause_addressed}</p>
-                  {(action.expected_metric_improvement || action.expected_improvement) && (
-                    <p className="text-[10px] text-accent-green mt-2 font-mono">
-                      Expected: {action.expected_metric_improvement || action.expected_improvement}
-                    </p>
+                  <p className="text-xs text-text-secondary mb-2">{typeof action === 'string' ? action : (action.action_name || action.name || action.action || 'Action description not available')}</p>
+                  {typeof action === 'object' && action.estimated_implementation_time && (
+                    <p className="text-xs text-accent-purple">Timeline: {action.estimated_implementation_time}</p>
                   )}
                 </div>
-              ))}
+              )) : (
+                <div className="text-sm text-text-secondary">Action plan data not available</div>
+              )}
             </div>
           </CollapsibleSection>
         </div>
