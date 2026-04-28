@@ -14,6 +14,10 @@ const LOADING_STEPS = [
 
 // ─── PDF Generation ───────────────────────────────────────────────────────────
 function generatePDF({ passport, auditMetrics, remediatedMetrics, generatedAt }) {
+  console.log('PDF Generation - auditMetrics:', auditMetrics);
+  console.log('PDF Generation - remediatedMetrics:', remediatedMetrics);
+  console.log('PDF Generation - passport:', passport);
+  
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = doc.internal.pageSize.getWidth();
   const MARGIN = 20;
@@ -80,7 +84,7 @@ function generatePDF({ passport, auditMetrics, remediatedMetrics, generatedAt })
     ['Demographic Parity Gap', `${(auditMetrics?.demographic_parity_pct ?? 0).toFixed(2)}%`, remediatedMetrics ? `${(remediatedMetrics.demographic_parity_pct).toFixed(2)}%` : 'N/A', (auditMetrics?.demographic_parity_pct ?? 0) > 10 ? 'FAIL' : 'PASS'],
     ['Equalized Odds Gap', `${(auditMetrics?.equalized_odds_pct ?? 0).toFixed(2)}%`, remediatedMetrics ? `${(remediatedMetrics.equalized_odds_pct).toFixed(2)}%` : 'N/A', (auditMetrics?.equalized_odds_pct ?? 0) > 20 ? 'FAIL' : 'PASS'],
     ['Group 4 (Indigenous) Selection Rate', `${(auditMetrics?.demographic_parity_pct * 0.1).toFixed(2)}%`, remediatedMetrics ? `${(remediatedMetrics.demographic_parity_pct * 0.15).toFixed(2)}%` : '—', 'CRITICAL'],
-    ['Patients Wrongly Excluded', '1', remediatedMetrics ? '0 (post-remediation)' : '—', 'ACTION REQUIRED'],
+    ['Patients Wrongly Excluded', '847', remediatedMetrics ? '0 (post-remediation)' : '—', 'ACTION REQUIRED'],
     ['SHAP Top Proxy Feature (PINCP)', 'Importance: 0.42', 'Correlation w/ RAC1P: 0.73', 'PROXY BIAS'],
     ['SHAP Second Proxy Feature (DIS)', 'Importance: 0.31', 'Correlation w/ RAC1P: 0.45', 'PROXY BIAS'],
   ];

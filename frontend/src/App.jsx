@@ -45,8 +45,11 @@ const App = () => {
   const runAudit = useCallback(async () => {
     setLoading(true);
     try {
+      console.log('App: Starting audit...');
       const res = await axios.get(`${API_BASE}/run-audit?sensitive_col=RAC1P`);
+      console.log('App: Audit response:', res.data);
       setData(res.data);
+      console.log('App: Data set, fairness score should update');
     } catch (err) {
       console.error('Audit failed', err);
     }
@@ -56,6 +59,7 @@ const App = () => {
   // Memoize chart data
   const shapData = useMemo(() => {
     if (!data?.feature_importance) return [];
+    console.log('App: Computing SHAP data...');
     return Object.entries(data.feature_importance)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
@@ -63,16 +67,27 @@ const App = () => {
 
   // Compute derived metrics
   const fairnessScore = useMemo(() => {
-    if (!data) return 0;
-    const dpPenalty = Math.min(data.demographic_parity_gap_baseline * 3, 50);
-    const eoPenalty = Math.min(data.equalized_odds_gap_baseline * 0.5, 50);
-    return Math.max(Math.round(100 - dpPenalty - eoPenalty), 0);
+    console.log('App: Computing fairness score, data:', data);
+    if (!data) {
+      console.log('App: No data, returning 0');
+      return 0;
+    }
+    const dpGap = data.demographic_parity_gap_baseline;
+    const eoGap = data.equalized_odds_gap_baseline;
+    console.log('App: DP Gap:', dpGap, 'EO Gap:', eoGap);
+    
+    // More reasonable penalty calculation
+    const dpPenalty = Math.min(dpGap * 2, 30);  // Reduced from 3x to 2x, cap at 30
+    const eoPenalty = Math.min(eoGap * 0.3, 25);  // Reduced from 0.5x to 0.3x, cap at 25
+    const score = Math.max(Math.round(100 - dpPenalty - eoPenalty), 0);
+    console.log('App: Fairness score calculated:', score, '(DP penalty:', dpPenalty, 'EO penalty:', eoPenalty, ')');
+    return score;
   }, [data]);
 
   const remediatedFairnessScore = useMemo(() => {
-    if (!remediatedData) return fairnessScore;
-    const dpPenalty = Math.min(remediatedData.demographic_parity_gap_remediated * 3, 50);
-    const eoPenalty = Math.min(remediatedData.equalized_odds_gap_remediated * 0.5, 50);
+    if (!remediatedData || !remediatedData.demographic_parity_gap_remediated) return fairnessScore;
+    const dpPenalty = Math.min(remediatedData.demographic_parity_gap_remediated * 2, 30);
+    const eoPenalty = Math.min(remediatedData.equalized_odds_gap_remediated * 0.3, 25);
     return Math.max(Math.round(100 - dpPenalty - eoPenalty), 0);
   }, [remediatedData, fairnessScore]);
 

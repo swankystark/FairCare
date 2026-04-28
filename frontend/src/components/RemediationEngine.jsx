@@ -8,11 +8,10 @@ import { API_BASE } from '../utils/apiConfig';
 const CONSTRAINTS = [
   { id: 'none', label: 'None — Max Accuracy', desc: 'No fairness constraint. Maximizes predictive accuracy.' },
   { id: 'demographic_parity', label: 'Demographic Parity', desc: 'Ensures equal selection rates across groups.' },
-  { id: 'equalized_odds', label: 'Equalized Odds', desc: 'Ensures equal TPR & FPR across groups via threshold optimization.' },
 ];
 
-const THRESHOLDS = { none: 30, demographic_parity: 48, equalized_odds: 39 };
-const PATIENTS_COUNT = { none: 0, demographic_parity: 847, equalized_odds: 623 };
+const THRESHOLDS = { none: 30, demographic_parity: 48 };
+const PATIENTS_COUNT = { none: 0, demographic_parity: 847 };
 
 // --- UTILS ---
 function DeltaArrow({ before, after, suffix = '%', invert = false }) {
@@ -69,6 +68,9 @@ export default function RemediationEngine({ baselineData, onRemediationComplete 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConstraintChange = useCallback(async (constraintId) => {
+    console.log('RemediationEngine: handleConstraintChange called with:', constraintId);
+    console.log('RemediationEngine: baselineData:', baselineData);
+    
     setActiveConstraint(constraintId);
     if (constraintId === 'none') {
       setRemediatedData(null);
@@ -78,11 +80,12 @@ export default function RemediationEngine({ baselineData, onRemediationComplete 
     
     setIsLoading(true);
     try {
-      // UPDATED: Now points to Cloud Run
+      console.log('RemediationEngine: Calling remediation API...');
       const res = await axios.post(`${API_BASE}/remediate`, {
         sensitive_col: 'RAC1P',
         constraint: constraintId,
       });
+      console.log('RemediationEngine: API response:', res.data);
       setRemediatedData(res.data);
       onRemediationComplete?.(res.data);
     } catch (err) {
@@ -213,7 +216,6 @@ export default function RemediationEngine({ baselineData, onRemediationComplete 
             {[
               { label: 'Model Accuracy', before: beforeAcc, after: afterAcc, suffix: '%', invert: false },
               { label: 'Demographic Parity Gap', before: beforeDP, after: afterDP, suffix: '%', invert: true },
-              { label: 'Equalized Odds Gap', before: beforeEO, after: afterEO, suffix: '%', invert: true },
             ].map(metric => (
               <div key={metric.label} className="bg-bg-elevated rounded-lg p-4 border border-border/50">
                 <p className="text-xs text-text-muted mb-2">{metric.label}</p>
