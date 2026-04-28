@@ -85,6 +85,16 @@ def explain_bias(data: AuditResults):
 async def generate_passport(metrics: dict):
     print(f"[PASSPORT] Received metrics: {metrics}")
     print(f"[PASSPORT] Metrics keys: {list(metrics.keys()) if metrics else 'None'}")
+    print(f"[PASSPORT] Metrics type: {type(metrics)}")
+    
+    # Check for required fields
+    required_fields = ['accuracy_baseline', 'demographic_parity_gap_baseline', 'equalized_odds_gap_baseline']
+    missing_fields = [field for field in required_fields if field not in metrics]
+    if missing_fields:
+        print(f"[PASSPORT] ERROR: Missing required fields: {missing_fields}")
+        raise HTTPException(status_code=400, detail=f"Missing required fields: {missing_fields}")
+    
+    print(f"[PASSPORT] All required fields present, proceeding...")
     
     # Calculate proper severity classification
     baseline_acc = metrics.get('accuracy_baseline', 99.9)
