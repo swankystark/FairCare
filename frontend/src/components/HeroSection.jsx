@@ -45,14 +45,10 @@ export default function HeroSection({ onRunAudit, loading }) {
           model harms a patient.
         </p>
 
-        <div className="flex items-center justify-center gap-4 mb-16 animate-fade-in" style={{ animationDelay: '600ms' }}>
+        <div className="flex items-center justify-center mb-16 animate-fade-in" style={{ animationDelay: '600ms' }}>
           <button onClick={onRunAudit} disabled={loading} className="btn btn-primary text-base px-8 py-3">
             <Play size={18} />
             {loading ? 'Auditing...' : 'Run Audit Now'}
-          </button>
-          <button className="btn btn-outline text-base px-8 py-3">
-            <FileText size={18} />
-            View Sample Report
           </button>
         </div>
 

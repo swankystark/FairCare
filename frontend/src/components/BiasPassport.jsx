@@ -40,7 +40,7 @@ function generatePDF({ passport, auditMetrics, remediatedMetrics, generatedAt })
   y = 50;
 
   // ── Risk Rating Box ──
-  const dp = auditMetrics?.demographic_parity_pct ?? 12.75;
+  const dp = auditMetrics?.demographic_parity_pct ?? 0;
   const riskRating = dp > 20 ? 'CRITICAL' : dp > 10 ? 'HIGH' : dp > 5 ? 'MODERATE' : 'LOW';
   const riskColor = { CRITICAL: [239, 68, 68], HIGH: [239, 68, 68], MODERATE: [245, 158, 11], LOW: [16, 185, 129] }[riskRating];
 
@@ -315,15 +315,28 @@ export default function BiasPassport({ auditData, remediatedData }) {
     }, 2000);
 
     try {
-      const res = await axios.post(`${API_BASE}/api/generate-passport`, {
-        accuracy_baseline: auditData?.accuracy_baseline ? auditData.accuracy_baseline : 99.9,
-        dp_gap_baseline: auditData?.demographic_parity_gap_baseline ? auditData.demographic_parity_gap_baseline : 12.75,
-        eo_gap_baseline: auditData?.equalized_odds_gap_baseline ? auditData.equalized_odds_gap_baseline : 100,
-        dp_gap_remediated: remediatedData?.demographic_parity_gap_remediated ? remediatedData.demographic_parity_gap_remediated : 9.09,
-        n_samples: 200000,
-        group4_rate: 0,
-        patients_harmed: 847,
-      });
+      // Use actual data from audit and remediation
+      const payload = {
+        accuracy_baseline: auditData?.accuracy_baseline || 0,
+        demographic_parity_gap_baseline: auditData?.demographic_parity_gap_baseline || 0,
+        equalized_odds_gap_baseline: auditData?.equalized_odds_gap_baseline || 0,
+        fairness_score_baseline: auditData?.fairness_score_baseline || 0,
+        demographic_rates: auditData?.demographic_rates || {},
+        feature_importance: auditData?.feature_importance || {},
+        patients_harmed: auditData?.patients_harmed || 0,
+        n_samples: auditData?.n_samples || 50000,
+      };
+
+      // Add remediation data if available
+      if (remediatedData) {
+        payload.accuracy_remediated = remediatedData.accuracy_remediated;
+        payload.demographic_parity_gap_remediated = remediatedData.demographic_parity_gap_remediated;
+        payload.equalized_odds_gap_remediated = remediatedData.equalized_odds_gap_remediated;
+        payload.fairness_score_remediated = remediatedData.fairness_score_remediated;
+        payload.demographic_rates_remediated = remediatedData.demographic_rates;
+      }
+
+      const res = await axios.post(`${API_BASE}/api/generate-passport`, payload);
       setPassport(res.data);
       setGeneratedAt(new Date().toISOString());
     } catch (err) {
