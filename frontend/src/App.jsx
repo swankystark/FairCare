@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import axios from 'axios';
+import { API_BASE } from './utils/apiConfig';
 
 // Core components (always loaded)
 import Topbar from './components/Topbar';
@@ -34,8 +35,6 @@ const TABS = [
   { id: 'insights', label: 'AI Insights', icon: Brain },
 ];
 
-const API_BASE = 'http://127.0.0.1:8000';
-
 const App = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -56,8 +55,8 @@ const App = () => {
 
   // Memoize chart data
   const shapData = useMemo(() => {
-    if (!data?.shap_summary) return [];
-    return Object.entries(data.shap_summary)
+    if (!data?.feature_importance) return [];
+    return Object.entries(data.feature_importance)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
   }, [data]);
@@ -65,15 +64,15 @@ const App = () => {
   // Compute derived metrics
   const fairnessScore = useMemo(() => {
     if (!data) return 0;
-    const dpPenalty = Math.min(data.demographic_parity * 100 * 3, 50);
-    const eoPenalty = Math.min(data.equalized_odds * 100 * 0.5, 50);
+    const dpPenalty = Math.min(data.demographic_parity_gap_baseline * 3, 50);
+    const eoPenalty = Math.min(data.equalized_odds_gap_baseline * 0.5, 50);
     return Math.max(Math.round(100 - dpPenalty - eoPenalty), 0);
   }, [data]);
 
   const remediatedFairnessScore = useMemo(() => {
     if (!remediatedData) return fairnessScore;
-    const dpPenalty = Math.min(remediatedData.demographic_parity * 100 * 3, 50);
-    const eoPenalty = Math.min(remediatedData.equalized_odds * 100 * 0.5, 50);
+    const dpPenalty = Math.min(remediatedData.demographic_parity_gap_remediated * 3, 50);
+    const eoPenalty = Math.min(remediatedData.equalized_odds_gap_remediated * 0.5, 50);
     return Math.max(Math.round(100 - dpPenalty - eoPenalty), 0);
   }, [remediatedData, fairnessScore]);
 
@@ -158,18 +157,18 @@ const App = () => {
                   />
                   <MetricCard
                     title="Demographic Parity Gap"
-                    value={parseFloat(((remediatedData || data).demographic_parity * 100).toFixed(2))}
+                    value={parseFloat(((remediatedData?.demographic_parity_gap_remediated || data.demographic_parity_gap_baseline)).toFixed(2))}
                     unit="%"
                     type="parity"
-                    subtitle={data.demographic_parity > 0.1 ? '⚠ Moderate Risk' : '✓ Within threshold'}
+                    subtitle={(data.demographic_parity_gap_baseline > 10) ? '⚠ Moderate Risk' : '✓ Within threshold'}
                     icon={Activity}
                   />
                   <MetricCard
                     title="Equalized Odds Gap"
-                    value={parseFloat(((remediatedData || data).equalized_odds * 100).toFixed(2))}
+                    value={parseFloat(((remediatedData?.equalized_odds_gap_remediated || data.equalized_odds_gap_baseline)).toFixed(2))}
                     unit="%"
                     type="parity"
-                    subtitle={data.equalized_odds > 0.5 ? '✕ Critical — Pre-Remediation' : '⚠ Needs attention'}
+                    subtitle={(data.equalized_odds_gap_baseline > 20) ? '✕ Critical — Pre-Remediation' : '⚠ Needs attention'}
                     icon={Activity}
                   />
                   <MetricCard
@@ -197,7 +196,7 @@ const App = () => {
                   <BiasCascade data={{ shapData }} />
                 </Suspense>
 
-                <ShapChart shapSummary={data.shap_summary} />
+                <ShapChart shapSummary={data.feature_importance} />
               </div>
             )}
 

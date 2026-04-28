@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Shield, ChevronDown, ChevronUp, Download, XOctagon, AlertTriangle, CheckCircle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { API_BASE } from '../utils/apiConfig';
 
 const LOADING_STEPS = [
   'Analyzing bias metrics...',
@@ -295,14 +296,14 @@ export default function BiasPassport({ auditData, remediatedData }) {
 
   // Build synced metric objects for the PDF
   const auditMetrics = auditData ? {
-    accuracy_pct: auditData.accuracy * 100,
-    demographic_parity_pct: auditData.demographic_parity * 100,
-    equalized_odds_pct: auditData.equalized_odds * 100,
+    accuracy_pct: auditData.accuracy_baseline,
+    demographic_parity_pct: auditData.demographic_parity_gap_baseline,
+    equalized_odds_pct: auditData.equalized_odds_gap_baseline,
   } : null;
 
   const remediatedMetrics = remediatedData ? {
-    demographic_parity_pct: remediatedData.demographic_parity * 100,
-    equalized_odds_pct: remediatedData.equalized_odds * 100,
+    demographic_parity_pct: remediatedData.demographic_parity_gap_remediated,
+    equalized_odds_pct: remediatedData.equalized_odds_gap_remediated,
   } : null;
 
   const generatePassport = useCallback(async () => {
@@ -314,11 +315,11 @@ export default function BiasPassport({ auditData, remediatedData }) {
     }, 2000);
 
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/generate-passport', {
-        accuracy_baseline: auditData?.accuracy ? auditData.accuracy * 100 : 99.9,
-        dp_gap_baseline: auditData?.demographic_parity ? auditData.demographic_parity * 100 : 12.75,
-        eo_gap_baseline: auditData?.equalized_odds ? auditData.equalized_odds * 100 : 100,
-        dp_gap_remediated: remediatedData?.demographic_parity ? remediatedData.demographic_parity * 100 : 9.09,
+      const res = await axios.post(`${API_BASE}/api/generate-passport`, {
+        accuracy_baseline: auditData?.accuracy_baseline ? auditData.accuracy_baseline : 99.9,
+        dp_gap_baseline: auditData?.demographic_parity_gap_baseline ? auditData.demographic_parity_gap_baseline : 12.75,
+        eo_gap_baseline: auditData?.equalized_odds_gap_baseline ? auditData.equalized_odds_gap_baseline : 100,
+        dp_gap_remediated: remediatedData?.demographic_parity_gap_remediated ? remediatedData.demographic_parity_gap_remediated : 9.09,
         n_samples: 200000,
         group4_rate: 0,
         patients_harmed: 847,

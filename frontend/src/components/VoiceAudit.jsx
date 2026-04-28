@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Mic, MicOff, Play, Pause } from 'lucide-react';
+import { API_BASE } from '../utils/apiConfig';
 
 const QUICK_QUERIES = [
   { label: 'Indigenous patients', query: 'Analyze the bias against Indigenous patients in this model.' },
@@ -106,7 +107,7 @@ export default function VoiceAudit() {
     setIsProcessing(true);
 
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/voice-audit', {
+      const res = await axios.post(`${API_BASE}/api/voice-audit`, {
         query: queryText,
         query_type: 'custom',
       });

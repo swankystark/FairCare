@@ -168,7 +168,6 @@ class BiasEngine:
         for fname in ['PINCP', 'DIS', 'MAR']:
             if fname in self._X_test.columns:
                 try:
-                    corr = abs(self._X_test[[fname]].values.flatten().astype(float).tolist()).__class__
                     # Manual correlation: avoid pandas issues
                     x_vals = self._X_test[fname].values.astype(float)
                     y_vals = sens_test.values.astype(float)
