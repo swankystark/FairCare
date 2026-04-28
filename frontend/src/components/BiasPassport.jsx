@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
-import { Shield, ChevronDown, ChevronUp, Download, AlertTriangle, FileText, Users, TrendingUp, Activity, CheckCircle } from 'lucide-react';
+import { Shield, ChevronDown, ChevronUp, Download, AlertTriangle, FileText, Users, TrendingUp, Activity, CheckCircle, XOctagon } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { API_BASE } from '../utils/apiConfig';
