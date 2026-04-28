@@ -1,1 +1,1 @@
-export const API_BASE = 'https://faircare-backend-965617314362.us-central1.run.app';
+export const API_BASE = 'http://localhost:8000';
